@@ -5,16 +5,18 @@
 const char* ssid = "HUAWEI_Grace_25E6";
 const char* password = "7110c21a";
 const char* mqtt_server = "192.168.43.114";
-const int MOVIMIENTO = 0;
+const int movimiento = 0;
+const int triggerPin = 4;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;
+int lastValue = 0;
 
 void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  pinMode(BUILTIN_LED, OUTPUT);
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, 1883);
@@ -24,7 +26,6 @@ void setup() {
 void setup_wifi() {
 
   delay(10);
-  // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -51,57 +52,48 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println();
 
-  // Switch on the LED if an 1 was received as first character
   if ((char)payload[0] == '1') {
-    digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
-    // but actually the LED is on; this is because
-    // it is acive low on the ESP-01)
+    digitalWrite(BUILTIN_LED, LOW);
   } else {
-    digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
+    digitalWrite(BUILTIN_LED, HIGH);
   }
 
 }
 
 void reconnect() {
-  // Loop until we're reconnected
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");
-      // Once connected, publish an announcement...
       client.publish("iotTW", "IoT Welcome");
-      // ... and resubscribe
-      
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
       delay(5000);
     }
   }
 }
+
 void loop() {
-  int valor = digitalRead(4);
-  Serial.printf(">>>>>> VALOR: %d\n", valor);
-    
+  int valor = digitalRead(triggerPin);
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
-
-  long now = millis();
-  if ((now - lastMsg > 2000)) {
-    lastMsg = now;   
-    Serial.print("Publish message: ");
-    if(valor == MOVIMIENTO){
-      Serial.print("{tv_status: \"on\"}");
-      client.publish("iotTW", "{\"tv_status\": \"on\"}");
+  char* message;
+  if (valor != lastValue) {
+    Serial.println("");
+    if(valor == movimiento){
+      Serial.println("Hay movimiento");
+      message = "{tv_status: \"on\"}";
     }else {
-      Serial.print("{tv_status: \"off\"}");
-      client.publish("iotTW", "{\"tv_status\": \"off\"}");
+      Serial.println("NO hay movimiento");
+      message = "{tv_status: \"off\"}";
     }
+    Serial.println(message);
+    client.publish("iotTW", message);
+    lastValue = valor;
   }
   delay(1000);
 }
