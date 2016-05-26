@@ -11,9 +11,6 @@ turn_off_timer = None
 
 def send_cec_command(command):
     print 'this command has been sent: {}'.format(command)
-    echo_process = Popen(('echo', command), stdout=PIPE)
-    cec_output = check_output(('cec-client','-s','RPI'), stdin=echo_process.stdout)
-    echo_process.wait()
 
 def off():
     print 'tv off'
