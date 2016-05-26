@@ -2,9 +2,9 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-const char* ssid = "HUAWEI_Grace_25E6";
-const char* password = "7110c21a";
-const char* mqtt_server = "192.168.43.114";
+const char* ssid = "openhardware";
+const char* password = "iotecuador";
+const char* mqtt_server = "test.mosquitto.org";
 const int movimiento = 0;
 const int triggerPin = 4;
 
@@ -65,7 +65,7 @@ void reconnect() {
     Serial.print("Attempting MQTT connection...");
     if (client.connect("ESP8266Client")) {
       Serial.println("connected");
-      client.publish("iotTW", "IoT Welcome");
+      //client.publish("iotTW", "IoT Welcome");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -86,10 +86,10 @@ void loop() {
     Serial.println("");
     if(valor == movimiento){
       Serial.println("Hay movimiento");
-      message = "{tv_status: \"on\"}";
+      message = "{\"presence\": true}";
     }else {
       Serial.println("NO hay movimiento");
-      message = "{tv_status: \"off\"}";
+      message = "{\"presence\": false}";
     }
     Serial.println(message);
     client.publish("iotTW", message);
