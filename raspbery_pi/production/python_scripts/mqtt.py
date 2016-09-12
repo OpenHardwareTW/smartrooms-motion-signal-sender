@@ -10,5 +10,5 @@ class MQTT():
         self.client.connect(self.server, self.port)
 
     def publish(self, message):
-        self.client.publish(self.room_name, message)
+        self.client.publish(self.topic, message)
         self.client.loop(2)
